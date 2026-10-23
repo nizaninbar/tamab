@@ -9,7 +9,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 0 | Repo, `.gitignore`, Pages, deploy workflow | ✅ done |
 | 1 | Vite/React/TS/Tailwind/PWA scaffold, RTL, theme, bottom nav | ✅ done, reviewed |
 | 2 | Supabase schema + RLS + seed | ✅ done, applied to hosted project |
-| 3 | Auth: invite link flow, Google linking, role routing | ⏭ next |
+| 3 | Auth: invite link flow, Google linking, role routing | 🟡 code done, awaiting review (see Phase 3 notes) |
 | 4–8 | See "Build order" in PLAN.md | todo |
 
 ## Environment facts
@@ -53,7 +53,15 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `profiles` are readable by every signed-in user (teachers need names for the schedule view).
 - Admin profile is bootstrapped by SQL, not by the app.
 
-## Notes for phase 3
+## Phase 3 notes (code done)
+
+- Edge Functions deployed (`npx supabase functions deploy --use-api --project-ref vhaonognazlgibohxioe`): `invite-teacher` (admin only; actions create/regenerate/revoke; returns one-time `token`) and `redeem-link` (public; token → session). Both `verify_jwt = false` in config.toml; invite-teacher checks the admin role itself. The service role key is auto-injected in hosted functions, so no secret was needed.
+- Teacher auth users get a placeholder email `teacher-<uuid>@tamab.invalid`. Link format: `https://nizaninbar.github.io/tamab/#/join?t=<token>`.
+- Frontend: `src/lib/supabase.ts`, `features/auth/{AuthProvider,LoginPage,JoinPage,ProfilePage}.tsx`; `Layout` is the auth guard and picks nav by role. Admin pages are placeholders (phase 6); admin `/manage` temporarily shows ProfilePage (for sign out).
+- Verified: build passes; functions reject unauthenticated/bogus calls (403/401). **Not yet tested end to end**: needs admin login in the UI, then a teacher created via `invite-teacher` (no UI until phase 6).
+- **User must do:** Google provider (client ID/secret) in Supabase Auth → Providers; enable manual linking (Auth → Sign In / Providers); confirm Site URL/redirect URLs include the Pages URL.
+
+## Original notes for phase 3
 
 - Needs Edge Functions `invite-teacher` and `redeem-link` (service role key goes in function secrets via `supabase secrets set`, never in the repo or frontend).
 - Redeem flow per PLAN.md: token hash lookup in `access_links`, admin `generateLink` + `verifyOtp` to mint a session.
