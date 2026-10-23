@@ -16,3 +16,6 @@ Mobile-first PWA for an admin managing ~6 tutors (2 groups × 3 teachers). Weekl
 - Week starts Sunday, timezone `Asia/Jerusalem` (`src/lib/week.ts`).
 - Deployed to GitHub Pages at `/tamab/` (Vite `base`), repo `nizaninbar/tamab`.
 - DB changes only via `supabase/migrations/*.sql`.
+
+## Sessions
+One session per phase. After PLAN.md, read **[docs/PROGRESS.md](docs/PROGRESS.md)** (status, env facts, commands, gotchas). Update it and commit at the end of every phase.
