@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Card } from '../../components/ui/Card'
 import { supabase } from '../../lib/supabase'
+import { PushCard } from '../push/PushCard'
 import { useAuth } from './AuthProvider'
 
 export function ProfilePage() {
@@ -36,6 +37,7 @@ export function ProfilePage() {
         )}
         {msg && <p className="mt-2 text-sm text-red-600">{msg}</p>}
       </Card>
+      <PushCard />
       <button onClick={signOut} className="min-h-12 w-full rounded-2xl bg-white font-medium text-ink-soft shadow-soft">
         התנתקות
       </button>

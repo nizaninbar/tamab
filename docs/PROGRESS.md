@@ -13,7 +13,8 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 4 | Weekly report form + teacher home | ✅ code done, build passes, **not yet tested in the UI** (needs a teacher + students; see notes) |
 | 5 | Weekly schedule (teacher form + all-teachers view) | ✅ code done, build passes, **not yet tested in the UI** |
 | 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
-| 7–8 | See "Build order" in PLAN.md | todo |
+| 7 | Push: subscription, `send-reminders`, cron, settings UI | 🟡 code done, build passes; **secrets/deploy pending** (see Phase 7 notes) |
+| 8 | Polish + install guide | todo |
 
 ## Environment facts
 
@@ -88,6 +89,14 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - Manage: create teacher (name + group) → one-time personal link shown with copy button; regenerate/revoke (confirm); change teacher group; rename/add groups; add/deactivate students; reminder day/time saved to `settings`. "Send test push" is phase 7. No delete for teachers/groups/students.
 - The link token is only shown once (only the hash is stored), so to re-share a link use "קישור חדש".
 - **Teacher link flow still untested end to end**: create a teacher in ניהול, open the link in a private window.
+
+## Phase 7 notes
+
+- SW is now `injectManifest` (`src/sw.ts`, typechecked via `tsconfig.sw.json`, excluded from the main tsconfig). Handles `push` + `notificationclick`.
+- `features/push/{usePush.ts,PushCard.tsx}`: enable/disable notifications, stores subscription in `push_subscriptions`. `PushCard` is on the profile page and on admin ניהול (with a "send test push" section). iOS not-installed shows a short hint (full install guide = phase 8).
+- `supabase/functions/send-reminders`: admin `{action:'test', user_id?}` or cron (`x-cron-secret` header) → sends to teachers without a submitted report this week when Israel day/hour match `settings`. Deletes 404/410 subscriptions. `verify_jwt = false`.
+- Migration `20261024000000_reminder_cron.sql` schedules hourly pg_net call; reads vault secret `cron_secret`.
+- **Pending (needs user approval, blocked by auto-mode classifier):** generate VAPID keys; `VITE_VAPID_PUBLIC_KEY` in `.env.local` + GitHub Actions secret (workflow already passes it); function secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`; vault secret `cron_secret` (same value as CRON_SECRET); deploy `send-reminders`; `db push`.
 
 ## Original notes for phase 3
 

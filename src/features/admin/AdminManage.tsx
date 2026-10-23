@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
+import { PushCard } from '../push/PushCard'
 import { useAuth } from '../auth/AuthProvider'
 import {
   addGroup, addStudent, fetchAllStudents, fetchSettings, fetchTeachers, invite, renameGroup,
-  saveSettings, updateStudent, updateTeacher,
+  saveSettings, sendTestPush, updateStudent, updateTeacher,
 } from './api'
 import { btnCls, ErrorNote, GroupSelect, inputCls, Loading, softBtnCls, useGroups } from './ui'
 
@@ -230,6 +231,28 @@ function ReminderSection() {
   )
 }
 
+function TestPushSection() {
+  const teachers = useQuery({ queryKey: ['teachers'], queryFn: fetchTeachers })
+  const [target, setTarget] = useState('')
+  const [msg, setMsg] = useState('')
+  const send = useMutation({
+    mutationFn: () => sendTestPush(target || null),
+    onSuccess: (n) => setMsg(n ? `נשלח ל-${n} מכשירים ✅` : 'אין מכשירים רשומים להתראות'),
+    onError: (e: Error) => setMsg(e.message),
+  })
+  return (
+    <Card className="space-y-3">
+      <h2 className="font-semibold">📣 שליחת התראת ניסיון</h2>
+      <select className={inputCls} value={target} onChange={(e) => setTarget(e.target.value)}>
+        <option value="">אני</option>
+        {teachers.data?.map((t) => <option key={t.id} value={t.id}>{t.full_name}</option>)}
+      </select>
+      <button className={`${btnCls} w-full`} disabled={send.isPending} onClick={() => { setMsg(''); send.mutate() }}>שליחה</button>
+      {msg && <p className="text-sm text-ink-soft">{msg}</p>}
+    </Card>
+  )
+}
+
 export function AdminManage() {
   const { signOut } = useAuth()
   return (
@@ -239,6 +262,8 @@ export function AdminManage() {
       <GroupsSection />
       <StudentsSection />
       <ReminderSection />
+      <PushCard />
+      <TestPushSection />
       <button onClick={signOut} className="min-h-12 w-full rounded-2xl bg-white font-medium text-ink-soft shadow-soft">
         התנתקות
       </button>

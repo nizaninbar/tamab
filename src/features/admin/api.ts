@@ -94,3 +94,10 @@ export async function invite(body: InviteBody): Promise<{ user_id: string; url?:
   if (error) throw new Error(error.message)
   return { user_id: data.user_id, url: data.token ? joinUrl(data.token) : undefined }
 }
+
+/** Sends a test push via the send-reminders Edge Function. `userId` null = myself. Returns the number of devices reached. */
+export async function sendTestPush(userId: string | null): Promise<number> {
+  const { data, error } = await supabase.functions.invoke('send-reminders', { body: { action: 'test', user_id: userId } })
+  if (error) throw new Error(error.message)
+  return data.sent as number
+}
