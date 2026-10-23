@@ -14,7 +14,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 5 | Weekly schedule (teacher form + all-teachers view) | ✅ code done, build passes, **not yet tested in the UI** |
 | 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
 | 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); test push verified on a device by the user |
-| 8 | Polish + install guide | todo |
+| 8 | Polish + install guide | ✅ code done, build passes, **not yet tested on a device** |
 
 ## Environment facts
 
@@ -97,6 +97,12 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `supabase/functions/send-reminders`: admin `{action:'test', user_id?}` or cron (`x-cron-secret` header) → sends to teachers without a submitted report this week when Israel day/hour match `settings`. Deletes 404/410 subscriptions. `verify_jwt = false`.
 - Migration `20261024000000_reminder_cron.sql` schedules hourly pg_net call; reads vault secret `cron_secret`.
 - Done: VAPID keys generated (public key in `.env.local` + Actions secret `VITE_VAPID_PUBLIC_KEY`; private key/subject/`CRON_SECRET` are function secrets; vault `cron_secret` matches). `send-reminders` deployed, migration pushed. Needs push to `main` to ship the frontend.
+
+## Phase 8 notes
+
+- `features/install/{useInstall.ts,InstallCard.tsx}`: install guide (Android/desktop uses captured `beforeinstallprompt` button, iOS gets Safari steps, else browser-menu steps). Hidden when already standalone. Shown as a dismissible banner for teachers (Layout, dismissal in localStorage) and always on profile + admin ניהול.
+- `OfflineBanner` in Layout, `ErrorBoundary` in `main.tsx`. `usePush` now imports `isIos`/`isStandalone` from `useInstall`.
+- Remaining: Lighthouse PWA check, real icons (current ones are placeholders), end-to-end teacher flow test on a phone.
 
 ## Original notes for phase 3
 

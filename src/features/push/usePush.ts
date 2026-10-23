@@ -1,14 +1,11 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../auth/AuthProvider'
+import { isIos, isStandalone } from '../install/useInstall'
 
 export type PushState = 'unsupported' | 'needs-install' | 'denied' | 'off' | 'on'
 
 const VAPID = import.meta.env.VITE_VAPID_PUBLIC_KEY as string | undefined
-
-const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches || (navigator as { standalone?: boolean }).standalone === true
-const isIos = () => /iphone|ipad|ipod/i.test(navigator.userAgent)
 
 function keyToBytes(b64: string) {
   const raw = atob(b64.replace(/-/g, '+').replace(/_/g, '/'))

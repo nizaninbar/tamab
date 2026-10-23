@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
+import { InstallCard } from '../install/InstallCard'
 import { PushCard } from '../push/PushCard'
 import { useAuth } from '../auth/AuthProvider'
 import {
@@ -262,6 +263,7 @@ export function AdminManage() {
       <GroupsSection />
       <StudentsSection />
       <ReminderSection />
+      <InstallCard />
       <PushCard />
       <TestPushSection />
       <button onClick={signOut} className="min-h-12 w-full rounded-2xl bg-white font-medium text-ink-soft shadow-soft">

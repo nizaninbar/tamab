@@ -1,6 +1,8 @@
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '../../features/auth/AuthProvider'
+import { InstallCard } from '../../features/install/InstallCard'
 import { BottomNav, type NavItem } from './BottomNav'
+import { OfflineBanner } from './OfflineBanner'
 
 const teacherNav: NavItem[] = [
   { to: '/', emoji: '🏡', label: 'בית' },
@@ -37,6 +39,8 @@ export function Layout() {
   return (
     <div className="mx-auto flex min-h-dvh max-w-120 flex-col">
       <main className="flex-1 px-4 pt-6 pb-28">
+        <OfflineBanner />
+        {profile.role === 'teacher' && <div className="mb-4 empty:hidden"><InstallCard dismissible /></div>}
         <Outlet />
       </main>
       <BottomNav items={profile.role === 'admin' ? adminNav : teacherNav} />
