@@ -9,3 +9,4 @@ dist
 !.vscode/extensions.json
 supabase/.temp
 supabase/.branches
+.claude/settings.local.json

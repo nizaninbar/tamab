@@ -13,7 +13,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 4 | Weekly report form + teacher home | ✅ code done, build passes, **not yet tested in the UI** (needs a teacher + students; see notes) |
 | 5 | Weekly schedule (teacher form + all-teachers view) | ✅ code done, build passes, **not yet tested in the UI** |
 | 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
-| 7 | Push: subscription, `send-reminders`, cron, settings UI | 🟡 code done, build passes; **secrets/deploy pending** (see Phase 7 notes) |
+| 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); **push not yet tested on a device** |
 | 8 | Polish + install guide | todo |
 
 ## Environment facts
@@ -96,7 +96,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `features/push/{usePush.ts,PushCard.tsx}`: enable/disable notifications, stores subscription in `push_subscriptions`. `PushCard` is on the profile page and on admin ניהול (with a "send test push" section). iOS not-installed shows a short hint (full install guide = phase 8).
 - `supabase/functions/send-reminders`: admin `{action:'test', user_id?}` or cron (`x-cron-secret` header) → sends to teachers without a submitted report this week when Israel day/hour match `settings`. Deletes 404/410 subscriptions. `verify_jwt = false`.
 - Migration `20261024000000_reminder_cron.sql` schedules hourly pg_net call; reads vault secret `cron_secret`.
-- **Pending (needs user approval, blocked by auto-mode classifier):** generate VAPID keys; `VITE_VAPID_PUBLIC_KEY` in `.env.local` + GitHub Actions secret (workflow already passes it); function secrets `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `CRON_SECRET`; vault secret `cron_secret` (same value as CRON_SECRET); deploy `send-reminders`; `db push`.
+- Done: VAPID keys generated (public key in `.env.local` + Actions secret `VITE_VAPID_PUBLIC_KEY`; private key/subject/`CRON_SECRET` are function secrets; vault `cron_secret` matches). `send-reminders` deployed, migration pushed. Needs push to `main` to ship the frontend.
 
 ## Original notes for phase 3
 
