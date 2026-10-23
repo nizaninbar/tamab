@@ -12,7 +12,8 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 3 | Auth: invite link flow, Google linking, role routing | ✅ done, reviewed (see Phase 3 notes) |
 | 4 | Weekly report form + teacher home | ✅ code done, build passes, **not yet tested in the UI** (needs a teacher + students; see notes) |
 | 5 | Weekly schedule (teacher form + all-teachers view) | ✅ code done, build passes, **not yet tested in the UI** |
-| 6–8 | See "Build order" in PLAN.md | todo |
+| 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
+| 7–8 | See "Build order" in PLAN.md | todo |
 
 ## Environment facts
 
@@ -79,6 +80,14 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - "Copy last week" appends the current week's slots to the form.
 - Home status card now checks next week's schedule (`my-schedule-exists` query key uses next week).
 - Phase 6 can reuse `fetchAllSchedules(week)` / `DAYS` for the admin grid.
+
+## Phase 6 notes
+
+- `features/admin/`: `api.ts` (queries/mutations + `invite()` wrapper for the `invite-teacher` function), `ui.tsx` (shared inputs, `GroupSelect`, `ReportDetail`), pages `AdminDashboard`, `AdminReports`, `AdminGaps`, `AdminSchedules`, `AdminManage`. `components/ui/WeekPicker` is shared. `Placeholder` removed.
+- Dashboard: per-teacher report state (submitted/draft/none), mood, schedule status for the week **after** the picked one, avg mood. Reports/gaps list only submitted reports (admin sees private ones too, marked 🔒).
+- Manage: create teacher (name + group) → one-time personal link shown with copy button; regenerate/revoke (confirm); change teacher group; rename/add groups; add/deactivate students; reminder day/time saved to `settings`. "Send test push" is phase 7. No delete for teachers/groups/students.
+- The link token is only shown once (only the hash is stored), so to re-share a link use "קישור חדש".
+- **Teacher link flow still untested end to end**: create a teacher in ניהול, open the link in a private window.
 
 ## Original notes for phase 3
 

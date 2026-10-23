@@ -5,24 +5,28 @@ import { AuthProvider, useAuth } from '../features/auth/AuthProvider'
 import { JoinPage } from '../features/auth/JoinPage'
 import { LoginPage } from '../features/auth/LoginPage'
 import { ProfilePage } from '../features/auth/ProfilePage'
-import { Placeholder } from '../features/home/Placeholder'
+import { AdminDashboard } from '../features/admin/AdminDashboard'
+import { AdminGaps } from '../features/admin/AdminGaps'
+import { AdminManage } from '../features/admin/AdminManage'
+import { AdminReports } from '../features/admin/AdminReports'
+import { AdminSchedules } from '../features/admin/AdminSchedules'
 import { TeacherHome } from '../features/home/TeacherHome'
 import { ReportPage } from '../features/reports/ReportPage'
 import { SchedulePage } from '../features/schedule/SchedulePage'
 
 const queryClient = new QueryClient()
 
-// Teacher vs admin pages (admin screens are built in phase 6).
+// Teacher vs admin pages.
 function RoleRoutes() {
   const { profile } = useAuth()
   if (profile?.role === 'admin') {
     return (
       <Routes>
-        <Route index element={<Placeholder emoji="📊" title="דשבורד" />} />
-        <Route path="reports" element={<Placeholder emoji="📝" title="דוחות" />} />
-        <Route path="gaps" element={<Placeholder emoji="🧩" title="פערים" />} />
-        <Route path="schedules" element={<Placeholder emoji="🗓️" title="מערכות" />} />
-        <Route path="manage" element={<><Placeholder emoji="⚙️" title="ניהול" /><div className="mt-4"><ProfilePage /></div></>} />
+        <Route index element={<AdminDashboard />} />
+        <Route path="reports" element={<AdminReports />} />
+        <Route path="gaps" element={<AdminGaps />} />
+        <Route path="schedules" element={<AdminSchedules />} />
+        <Route path="manage" element={<AdminManage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     )
