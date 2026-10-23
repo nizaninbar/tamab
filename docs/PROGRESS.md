@@ -10,7 +10,8 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 1 | Vite/React/TS/Tailwind/PWA scaffold, RTL, theme, bottom nav | ✅ done, reviewed |
 | 2 | Supabase schema + RLS + seed | ✅ done, applied to hosted project |
 | 3 | Auth: invite link flow, Google linking, role routing | ✅ done, reviewed (see Phase 3 notes) |
-| 4–8 | See "Build order" in PLAN.md | todo |
+| 4 | Weekly report form + teacher home | ✅ code done, build passes, **not yet tested in the UI** (needs a teacher + students; see notes) |
+| 5–8 | See "Build order" in PLAN.md | todo |
 
 ## Environment facts
 
@@ -60,6 +61,15 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - Frontend: `src/lib/supabase.ts`, `features/auth/{AuthProvider,LoginPage,JoinPage,ProfilePage}.tsx`; `Layout` is the auth guard and picks nav by role. Admin pages are placeholders (phase 6); admin `/manage` temporarily shows ProfilePage (for sign out).
 - Verified: build passes; functions reject unauthenticated/bogus calls (403/401). **Not yet tested end to end**: needs admin login in the UI, then a teacher created via `invite-teacher` (no UI until phase 6).
 - Google provider, manual linking and Auth URL config were set up by the user (existing Google OAuth client reused; redirect URI is the Supabase callback). Admin login checked in the UI. Teacher link flow still untested end to end: test it in phase 6 once the admin UI can create teachers.
+
+## Phase 4 notes
+
+- `src/lib/week.ts` (Sunday week start, Israel tz: `currentWeek`, `addWeeks`, `weekLabel`). UI: `EmojiScale` (also exports `moodEmoji`), `Switch`.
+- `features/reports/api.ts` (queries/save), `ReportPage` (autosave draft after 1s, serialized saves; submit validates taught + mood + gap rows and sets `submitted_at`; stays editable, button becomes "עדכון הדוח"), `features/home/TeacherHome.tsx` (status cards + group feed of submitted public reports, excluding own).
+- Gaps are saved by delete-all + insert on each save; rows missing a student or text are dropped from drafts and blocked on submit.
+- "Edit until week end" is UI-only (only the current week is editable); RLS does not enforce it.
+- Schedule status card reads `weekly_schedules` for the current week; phase 5 should decide whether it means current or next week (plan says the form is for next week).
+- Testing needs students (no UI until phase 6) and a teacher: insert via SQL/`invite-teacher` for now.
 
 ## Original notes for phase 3
 
