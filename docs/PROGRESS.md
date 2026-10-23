@@ -13,7 +13,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 4 | Weekly report form + teacher home | ✅ code done, build passes, **not yet tested in the UI** (needs a teacher + students; see notes) |
 | 5 | Weekly schedule (teacher form + all-teachers view) | ✅ code done, build passes, **not yet tested in the UI** |
 | 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
-| 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); **push not yet tested on a device** |
+| 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); test push verified on a device by the user |
 | 8 | Polish + install guide | todo |
 
 ## Environment facts
