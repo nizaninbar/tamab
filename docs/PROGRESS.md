@@ -9,7 +9,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 0 | Repo, `.gitignore`, Pages, deploy workflow | ✅ done |
 | 1 | Vite/React/TS/Tailwind/PWA scaffold, RTL, theme, bottom nav | ✅ done, reviewed |
 | 2 | Supabase schema + RLS + seed | ✅ done, applied to hosted project |
-| 3 | Auth: invite link flow, Google linking, role routing | 🟡 code done, awaiting review (see Phase 3 notes) |
+| 3 | Auth: invite link flow, Google linking, role routing | ✅ done, reviewed (see Phase 3 notes) |
 | 4–8 | See "Build order" in PLAN.md | todo |
 
 ## Environment facts
@@ -59,7 +59,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - Teacher auth users get a placeholder email `teacher-<uuid>@tamab.invalid`. Link format: `https://nizaninbar.github.io/tamab/#/join?t=<token>`.
 - Frontend: `src/lib/supabase.ts`, `features/auth/{AuthProvider,LoginPage,JoinPage,ProfilePage}.tsx`; `Layout` is the auth guard and picks nav by role. Admin pages are placeholders (phase 6); admin `/manage` temporarily shows ProfilePage (for sign out).
 - Verified: build passes; functions reject unauthenticated/bogus calls (403/401). **Not yet tested end to end**: needs admin login in the UI, then a teacher created via `invite-teacher` (no UI until phase 6).
-- **User must do:** Google provider (client ID/secret) in Supabase Auth → Providers; enable manual linking (Auth → Sign In / Providers); confirm Site URL/redirect URLs include the Pages URL.
+- Google provider, manual linking and Auth URL config were set up by the user (existing Google OAuth client reused; redirect URI is the Supabase callback). Admin login checked in the UI. Teacher link flow still untested end to end: test it in phase 6 once the admin UI can create teachers.
 
 ## Original notes for phase 3
 
