@@ -11,7 +11,8 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 2 | Supabase schema + RLS + seed | ✅ done, applied to hosted project |
 | 3 | Auth: invite link flow, Google linking, role routing | ✅ done, reviewed (see Phase 3 notes) |
 | 4 | Weekly report form + teacher home | ✅ code done, build passes, **not yet tested in the UI** (needs a teacher + students; see notes) |
-| 5–8 | See "Build order" in PLAN.md | todo |
+| 5 | Weekly schedule (teacher form + all-teachers view) | ✅ code done, build passes, **not yet tested in the UI** |
+| 6–8 | See "Build order" in PLAN.md | todo |
 
 ## Environment facts
 
@@ -70,6 +71,14 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - "Edit until week end" is UI-only (only the current week is editable); RLS does not enforce it.
 - Schedule status card reads `weekly_schedules` for the current week; phase 5 should decide whether it means current or next week (plan says the form is for next week).
 - Testing needs students (no UI until phase 6) and a teacher: insert via SQL/`invite-teacher` for now.
+
+## Phase 5 notes
+
+- `features/schedule/{api.ts,SchedulePage.tsx}`; route `/schedule`. Form is for **next week** (`addWeeks(currentWeek(), 1)`); tabs "שלי" / "כל המורות" (read-only, grouped by day, all teachers via RLS).
+- Save is explicit (button), not autosave: upsert `weekly_schedules`, then delete-all + insert slots. Saving with zero slots is allowed and counts as submitted. Validation: end after start, note required (also enforced in DB).
+- "Copy last week" appends the current week's slots to the form.
+- Home status card now checks next week's schedule (`my-schedule-exists` query key uses next week).
+- Phase 6 can reuse `fetchAllSchedules(week)` / `DAYS` for the admin grid.
 
 ## Original notes for phase 3
 

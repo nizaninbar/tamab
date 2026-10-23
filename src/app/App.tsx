@@ -8,6 +8,7 @@ import { ProfilePage } from '../features/auth/ProfilePage'
 import { Placeholder } from '../features/home/Placeholder'
 import { TeacherHome } from '../features/home/TeacherHome'
 import { ReportPage } from '../features/reports/ReportPage'
+import { SchedulePage } from '../features/schedule/SchedulePage'
 
 const queryClient = new QueryClient()
 
@@ -30,7 +31,7 @@ function RoleRoutes() {
     <Routes>
       <Route index element={<TeacherHome />} />
       <Route path="report" element={<ReportPage />} />
-      <Route path="schedule" element={<Placeholder emoji="🗓️" title="מערכת שבועית" />} />
+      <Route path="schedule" element={<SchedulePage />} />
       <Route path="profile" element={<ProfilePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { Card } from '../../components/ui/Card'
 import { moodEmoji } from '../../components/ui/EmojiScale'
-import { currentWeek, weekLabel } from '../../lib/week'
+import { addWeeks, currentWeek, weekLabel } from '../../lib/week'
 import { useAuth } from '../auth/AuthProvider'
 import { fetchFeed, fetchMyReport, fetchMyScheduleExists, fetchStudents } from '../reports/api'
 
@@ -23,9 +23,10 @@ export function TeacherHome() {
   const id = profile!.id
   const groupId = profile!.group_id
   const week = currentWeek()
+  const nextWeek = addWeeks(week, 1)
 
   const report = useQuery({ queryKey: ['my-report', id, week], queryFn: () => fetchMyReport(id, week) })
-  const schedule = useQuery({ queryKey: ['my-schedule-exists', id, week], queryFn: () => fetchMyScheduleExists(id, week) })
+  const schedule = useQuery({ queryKey: ['my-schedule-exists', id, nextWeek], queryFn: () => fetchMyScheduleExists(id, nextWeek) })
   const feed = useQuery({ queryKey: ['feed', id, week], queryFn: () => fetchFeed(week, id) })
   const students = useQuery({
     queryKey: ['students', groupId],
@@ -45,7 +46,7 @@ export function TeacherHome() {
 
       <div className="flex gap-3">
         <StatusCard to="/report" emoji="📝" title="דוח שבועי" done={!!report.data?.submitted_at} />
-        <StatusCard to="/schedule" emoji="🗓️" title="מערכת" done={!!schedule.data} />
+        <StatusCard to="/schedule" emoji="🗓️" title="מערכת לשבוע הבא" done={!!schedule.data} />
       </div>
 
       <h2 className="px-1 font-semibold">💬 מהקבוצה</h2>
