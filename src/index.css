@@ -1,0 +1,31 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/rubik';
+
+@theme {
+  --font-sans: 'Rubik Variable', system-ui, sans-serif;
+  --color-blush-50: #fff5f8;
+  --color-blush-100: #ffe4ee;
+  --color-blush-200: #fbcfe3;
+  --color-blush-300: #f9a8d4;
+  --color-blush-500: #ec6fa8;
+  --color-blush-700: #be3d7d;
+  --color-lilac-100: #f0e8ff;
+  --color-lilac-200: #e0d0fb;
+  --color-lilac-400: #b79cf0;
+  --color-lilac-600: #7d5bd0;
+  --color-peach-100: #ffeadb;
+  --color-peach-200: #ffd5b8;
+  --color-ink: #4a3b52;
+  --color-ink-soft: #8a7a93;
+  --shadow-soft: 0 6px 20px -8px rgb(190 61 125 / 0.25);
+}
+
+html, body, #root { min-height: 100dvh; }
+body {
+  margin: 0;
+  background: linear-gradient(160deg, var(--color-blush-50), var(--color-lilac-100) 60%, var(--color-peach-100));
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+}
