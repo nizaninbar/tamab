@@ -59,7 +59,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 
 ## Phase 3 notes (code done)
 
-- Edge Functions deployed (`npx supabase functions deploy --use-api --project-ref vhaonognazlgibohxioe`): `invite-teacher` (admin only; actions create/regenerate/revoke; returns one-time `token`) and `redeem-link` (public; token → session). Both `verify_jwt = false` in config.toml; invite-teacher checks the admin role itself. The service role key is auto-injected in hosted functions, so no secret was needed.
+- Edge Functions deployed (`npx supabase functions deploy --use-api --project-ref vhaonognazlgibohxioe`): `invite-teacher` (admin only; actions create (optional `role: 'admin'`)/regenerate/revoke/remove_admin; returns one-time `token`; admins are added/removed from the Admins section on `/manage`) and `redeem-link` (public; token → session). Both `verify_jwt = false` in config.toml; invite-teacher checks the admin role itself. The service role key is auto-injected in hosted functions, so no secret was needed.
 - Teacher auth users get a placeholder email `teacher-<uuid>@tamab.invalid`. Link format: `https://nizaninbar.github.io/tamab/#/join?t=<token>`.
 - Frontend: `src/lib/supabase.ts`, `features/auth/{AuthProvider,LoginPage,JoinPage,ProfilePage}.tsx`; `Layout` is the auth guard and picks nav by role. Admin pages are placeholders (phase 6); admin `/manage` temporarily shows ProfilePage (for sign out).
 - Verified: build passes; functions reject unauthenticated/bogus calls (403/401). **Not yet tested end to end**: needs admin login in the UI, then a teacher created via `invite-teacher` (no UI until phase 6).
@@ -103,6 +103,13 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `features/install/{useInstall.ts,InstallCard.tsx}`: install guide (Android/desktop uses captured `beforeinstallprompt` button, iOS gets Safari steps, else browser-menu steps). Hidden when already standalone. Shown as a dismissible banner for teachers (Layout, dismissal in localStorage) and always on profile + admin ניהול.
 - `OfflineBanner` in Layout, `ErrorBoundary` in `main.tsx`. `usePush` now imports `isIos`/`isStandalone` from `useInstall`.
 - Remaining: Lighthouse PWA check, real icons (current ones are placeholders), end-to-end teacher flow test on a phone.
+
+## Admin management (post-phase 8)
+
+- `/manage` has an `AdminsSection` (`AdminManage.tsx`): list admins, add one by name (one-time personal link, same flow as tutors), new link / revoke / remove. Own row has no actions.
+- `invite-teacher` redeployed: `create` takes optional `role: 'admin'` (no group, placeholder email `admin-<uuid>@tamab.invalid`); new `remove_admin` action deletes the auth user (profile cascades) and refuses self-removal and removing the last admin. No migration.
+- Admin bootstrap by SQL is only needed for the very first admin now.
+- Not yet tested end to end in the UI (add admin, open link in a private window, remove).
 
 ## Original notes for phase 3
 

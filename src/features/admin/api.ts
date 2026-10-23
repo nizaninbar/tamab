@@ -37,6 +37,9 @@ export const fetchGroups = async (): Promise<Group[]> =>
 export const fetchTeachers = async (): Promise<Teacher[]> =>
   ok(await supabase.from('profiles').select('id, full_name, avatar_emoji, group_id').eq('role', 'teacher').order('full_name'))
 
+export const fetchAdmins = async (): Promise<Teacher[]> =>
+  ok(await supabase.from('profiles').select('id, full_name, avatar_emoji, group_id').eq('role', 'admin').order('full_name'))
+
 export const fetchAllStudents = async (): Promise<AdminStudent[]> =>
   ok(await supabase.from('students').select('id, full_name, group_id, active').order('full_name'))
 
@@ -85,8 +88,8 @@ export const joinUrl = (token: string) =>
   `${window.location.origin}${import.meta.env.BASE_URL}#/join?t=${token}`
 
 type InviteBody =
-  | { action: 'create'; full_name: string; group_id: string | null }
-  | { action: 'regenerate' | 'revoke'; user_id: string }
+  | { action: 'create'; full_name: string; group_id: string | null; role?: 'admin' | 'teacher' }
+  | { action: 'regenerate' | 'revoke' | 'remove_admin'; user_id: string }
 
 /** Calls the invite-teacher Edge Function. Returns the one-time link (not for revoke). */
 export async function invite(body: InviteBody): Promise<{ user_id: string; url?: string }> {

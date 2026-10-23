@@ -5,7 +5,7 @@ import { InstallCard } from '../install/InstallCard'
 import { PushCard } from '../push/PushCard'
 import { useAuth } from '../auth/AuthProvider'
 import {
-  addGroup, addStudent, fetchAllStudents, fetchSettings, fetchTeachers, invite, renameGroup,
+  addGroup, addStudent, fetchAdmins, fetchAllStudents, fetchSettings, fetchTeachers, invite, renameGroup,
   saveSettings, sendTestPush, updateStudent, updateTeacher,
 } from './api'
 import { btnCls, ErrorNote, GroupSelect, inputCls, Loading, softBtnCls, useGroups } from './ui'
@@ -93,6 +93,98 @@ function TeachersSection() {
         <h3 className="text-sm font-medium">הוספת מורה</h3>
         <input className={inputCls} placeholder="שם מלא" value={fullName} onChange={(e) => setFullName(e.target.value)} />
         <GroupSelect value={groupId} onChange={setGroupId} />
+        <button className={`${btnCls} w-full`} disabled={!fullName.trim() || run.isPending} onClick={create}>
+          יצירה וקישור אישי
+        </button>
+      </div>
+      {msg && <p className="text-sm text-ink-soft">{msg}</p>}
+    </Card>
+  )
+}
+
+function AdminsSection() {
+  const qc = useQueryClient()
+  const { profile } = useAuth()
+  const admins = useQuery({ queryKey: ['admins'], queryFn: fetchAdmins })
+  const [fullName, setFullName] = useState('')
+  const [link, setLink] = useState<{ id: string; url: string } | null>(null)
+  const [msg, setMsg] = useState('')
+
+  const run = useMutation({
+    mutationFn: async (fn: () => Promise<void>) => fn(),
+    onError: (e: Error) => setMsg(e.message),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admins'] }),
+  })
+
+  const copy = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url)
+      setMsg('הקישור הועתק ✅')
+    } catch {
+      setMsg('לא הצלחתי להעתיק, אפשר להעתיק ידנית מהשדה')
+    }
+  }
+
+  const create = () =>
+    run.mutate(async () => {
+      setMsg('')
+      const r = await invite({ action: 'create', role: 'admin', full_name: fullName.trim(), group_id: null })
+      setFullName('')
+      setLink({ id: r.user_id, url: r.url! })
+    })
+
+  const regenerate = (id: string) =>
+    run.mutate(async () => {
+      if (!window.confirm('ליצור קישור חדש? הקישור הישן יפסיק לעבוד.')) return
+      setMsg('')
+      const r = await invite({ action: 'regenerate', user_id: id })
+      setLink({ id, url: r.url! })
+    })
+
+  const revoke = (id: string) =>
+    run.mutate(async () => {
+      if (!window.confirm('לבטל את הקישור? המנהלת לא תוכל להיכנס מחדש.')) return
+      await invite({ action: 'revoke', user_id: id })
+      setLink(null)
+      setMsg('הקישור בוטל')
+    })
+
+  const remove = (id: string) =>
+    run.mutate(async () => {
+      if (!window.confirm('להסיר את המנהלת? החשבון שלה יימחק.')) return
+      setMsg('')
+      await invite({ action: 'remove_admin', user_id: id })
+      setLink(null)
+    })
+
+  return (
+    <Card className="space-y-3">
+      <h2 className="font-semibold">👑 מנהלות</h2>
+      {admins.isPending && <Loading />}
+      {admins.error && <ErrorNote error={admins.error} />}
+      {admins.data?.map((a) => (
+        <div key={a.id} className="space-y-2 rounded-2xl bg-lilac-100/50 p-3">
+          <span className="font-medium">{a.avatar_emoji} {a.full_name}</span>
+          {a.id !== profile?.id && (
+            <div className="flex gap-2">
+              <button className={`${softBtnCls} flex-1`} onClick={() => regenerate(a.id)}>🔗 קישור חדש</button>
+              <button className={`${softBtnCls} flex-1`} onClick={() => revoke(a.id)}>🚫 ביטול</button>
+              <button className={`${softBtnCls} flex-1`} onClick={() => remove(a.id)}>🗑 הסרה</button>
+            </div>
+          )}
+          {link?.id === a.id && (
+            <div className="space-y-2">
+              <input className={`${inputCls} text-xs`} dir="ltr" readOnly value={link.url} onFocus={(e) => e.target.select()} />
+              <button className={`${btnCls} w-full`} onClick={() => copy(link.url)}>העתקת קישור</button>
+              <p className="text-xs text-ink-soft">הקישור מוצג רק עכשיו. אפשר לשלוח בוואטסאפ.</p>
+            </div>
+          )}
+        </div>
+      ))}
+
+      <div className="space-y-2 border-t border-lilac-100 pt-3">
+        <h3 className="text-sm font-medium">הוספת מנהלת</h3>
+        <input className={inputCls} placeholder="שם מלא" value={fullName} onChange={(e) => setFullName(e.target.value)} />
         <button className={`${btnCls} w-full`} disabled={!fullName.trim() || run.isPending} onClick={create}>
           יצירה וקישור אישי
         </button>
@@ -260,6 +352,7 @@ export function AdminManage() {
     <div className="space-y-4">
       <h1 className="text-center text-xl font-semibold text-blush-700">⚙️ ניהול</h1>
       <TeachersSection />
+      <AdminsSection />
       <GroupsSection />
       <StudentsSection />
       <ReminderSection />
