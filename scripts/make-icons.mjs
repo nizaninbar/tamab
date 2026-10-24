@@ -1,40 +1,28 @@
-// Generates plain PNG icons (pink bg, light circle) without dependencies.
-import { deflateSync } from 'node:zlib'
-import { writeFileSync } from 'node:fs'
+// Generates app icons in public/ from public/icon-source.png. Run: npm run icons
+import sharp from 'sharp'
 
-const crcTable = Array.from({ length: 256 }, (_, n) => {
-  let c = n
-  for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1
-  return c >>> 0
-})
-const crc = (buf) => {
-  let c = 0xffffffff
-  for (const b of buf) c = crcTable[(c ^ b) & 255] ^ (c >>> 8)
-  return (c ^ 0xffffffff) >>> 0
-}
-const chunk = (type, data) => {
-  const t = Buffer.from(type)
-  const len = Buffer.alloc(4); len.writeUInt32BE(data.length)
-  const c = Buffer.alloc(4); c.writeUInt32BE(crc(Buffer.concat([t, data])))
-  return Buffer.concat([len, t, data, c])
-}
-const png = (size) => {
-  const bg = [0xf9, 0xa8, 0xd4], fg = [0xff, 0xf5, 0xf8]
-  const r = size * 0.29, mid = size / 2
-  const raw = Buffer.alloc((size * 3 + 1) * size)
-  for (let y = 0; y < size; y++) {
-    raw[y * (size * 3 + 1)] = 0
-    for (let x = 0; x < size; x++) {
-      const inside = (x - mid) ** 2 + (y - mid) ** 2 <= r * r
-      const px = inside ? fg : bg
-      raw.set(px, y * (size * 3 + 1) + 1 + x * 3)
-    }
-  }
-  const ihdr = Buffer.alloc(13)
-  ihdr.writeUInt32BE(size, 0); ihdr.writeUInt32BE(size, 4); ihdr[8] = 8; ihdr[9] = 2
-  return Buffer.concat([
-    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0)),
-  ])
-}
-for (const s of [192, 512]) writeFileSync(`public/icon-${s}.png`, png(s))
+const src = 'public/icon-source.png'
+const out = (name) => `public/${name}`
+
+// Background color = mean of a patch near the top-left corner (the outermost pixels are slightly darker).
+const patch = await sharp(src).extract({ left: 20, top: 20, width: 60, height: 60 }).png().toBuffer()
+const { channels } = await sharp(patch).stats()
+const [r, g, b] = channels.slice(0, 3).map((c) => Math.round(c.mean))
+const background = { r, g, b, alpha: 1 }
+const hex = '#' + [r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')
+
+const resize = (size, name) => sharp(src).resize(size, size).png().toFile(out(name))
+
+await resize(192, 'icon-192.png')
+await resize(512, 'icon-512.png')
+await resize(180, 'apple-touch-icon.png')
+await resize(32, 'favicon-32.png')
+
+// Maskable: image at ~72% centered, so Android's 80% safe zone keeps the whole heart.
+const inner = Math.round(512 * 0.72)
+await sharp({ create: { width: 512, height: 512, channels: 4, background } })
+  .composite([{ input: await sharp(src).resize(inner, inner).png().toBuffer(), gravity: 'center' }])
+  .png()
+  .toFile(out('icon-maskable-512.png'))
+
+console.log(`icons written, background ${hex}`)

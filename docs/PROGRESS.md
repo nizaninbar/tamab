@@ -15,7 +15,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
 | 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); test push verified on a device by the user |
 | 8 | Polish + install guide | ✅ code done, build passes, **not yet tested on a device** |
-| 9 | App icon from `public/icon-source.png` | ⏳ todo (spec: PLAN.md "Feedback round 1") |
+| 9 | App icon from `public/icon-source.png` | ✅ done, build passes, **not yet checked on a device** |
 | 10 | Teacher gaps tab (`group_gaps()` RPC) | ⏳ todo |
 | 11 | Admin delete (per item + bulk cleanup) | ⏳ todo |
 | 12 | Multi-day schedule block (`end_day`) | ⏳ todo |
@@ -108,7 +108,14 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 
 - `features/install/{useInstall.ts,InstallCard.tsx}`: install guide (Android/desktop uses captured `beforeinstallprompt` button, iOS gets Safari steps, else browser-menu steps). Hidden when already standalone. Shown as a dismissible banner for teachers (Layout, dismissal in localStorage) and always on profile + admin ניהול.
 - `OfflineBanner` in Layout, `ErrorBoundary` in `main.tsx`. `usePush` now imports `isIos`/`isStandalone` from `useInstall`.
-- Remaining: Lighthouse PWA check, real icons (current ones are placeholders), end-to-end teacher flow test on a phone.
+- Remaining: Lighthouse PWA check, end-to-end teacher flow test on a phone.
+
+## Phase 9 notes
+
+- `npm run icons` (`scripts/make-icons.mjs`, uses `sharp`) writes `icon-192/512`, `icon-maskable-512` (image at 72% on the background color), `apple-touch-icon` (180) and `favicon-32` into `public/`. Generated PNGs are committed; `icon.svg` removed.
+- Background color is the mean of a patch near the corner, `#ebe5fd` (the outermost source pixels are slightly darker, `#e7e2fb`, and left a visible seam). Manifest `background_color` uses it; `theme_color` is still pink.
+- Already installed phones may need to remove and re-add the app to see the new icon (iOS especially).
+- Not done: DevTools → Application manifest check in a browser (manifest output in `dist/` verified by hand).
 
 ## Admin management (post-phase 8)
 

@@ -13,7 +13,7 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.ts',
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['favicon-32.png', 'apple-touch-icon.png'],
       manifest: {
         name: 'תמב',
         short_name: 'תמב',
@@ -25,11 +25,11 @@ export default defineConfig({
         scope: '/tamab/',
         start_url: '/tamab/',
         theme_color: '#f9a8d4',
-        background_color: '#fff5f8',
+        background_color: '#ebe5fd',
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
       },
     }),
