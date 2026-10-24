@@ -15,6 +15,11 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 6 | Admin screens (dashboard, reports, gaps, schedules, management) | ✅ code done, build passes, **not yet tested in the UI** |
 | 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); test push verified on a device by the user |
 | 8 | Polish + install guide | ✅ code done, build passes, **not yet tested on a device** |
+| 9 | App icon from `public/icon-source.png` | ⏳ todo (spec: PLAN.md "Feedback round 1") |
+| 10 | Teacher gaps tab (`group_gaps()` RPC) | ⏳ todo |
+| 11 | Admin delete (per item + bulk cleanup) | ⏳ todo |
+| 12 | Multi-day schedule block (`end_day`) | ⏳ todo |
+| 13 | Pop-up notifications | ⏳ todo |
 
 ## Environment facts
 
@@ -56,6 +61,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - New reports default to `is_private = true`.
 - `profiles` are readable by every signed-in user (teachers need names for the schedule view).
 - Admin profile is bootstrapped by SQL, not by the app.
+- Feedback round 1 (phases 9–13): teachers see all gaps of their group, including those in private reports, through the `group_gaps()` security-definer RPC. RLS on reports/gaps is unchanged, so private report bodies stay hidden.
 
 ## Phase 3 notes (code done)
 
