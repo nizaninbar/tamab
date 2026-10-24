@@ -27,7 +27,7 @@ async function push(admin: ReturnType<typeof serviceClient>, userIds: string[], 
   const dead: string[] = []
   await Promise.all((subs ?? []).map(async (s) => {
     try {
-      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload))
+      await webpush.sendNotification({ endpoint: s.endpoint, keys: { p256dh: s.p256dh, auth: s.auth } }, JSON.stringify(payload), { urgency: 'high', TTL: 86400 })
       sent++
     } catch (e) {
       const code = (e as { statusCode?: number }).statusCode

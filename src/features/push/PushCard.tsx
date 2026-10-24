@@ -1,4 +1,5 @@
 import { Card } from '../../components/ui/Card'
+import { isIos } from '../install/useInstall'
 import { usePush } from './usePush'
 
 const HINTS = {
@@ -6,6 +7,10 @@ const HINTS = {
   'needs-install': 'באייפון צריך קודם להוסיף את האפליקציה למסך הבית (שיתוף ← הוספה למסך הבית), ואז לפתוח אותה משם.',
   denied: 'ההתראות חסומות. אפשר לאפשר אותן בהגדרות הדפדפן או המכשיר.',
 } as const
+
+const POPUP_HINT = isIos()
+  ? 'כדי שההתראה תישאר על המסך: הגדרות ← התראות ← תמב ← סגנון באנר "קבוע".'
+  : 'כדי שההתראה תקפוץ על המסך: הגדרות ← התראות של האפליקציה ← הפעילי "הצגה על המסך".'
 
 export function PushCard() {
   const { state, busy, error, enable, disable } = usePush()
@@ -28,6 +33,7 @@ export function PushCard() {
           >
             {state === 'on' ? 'כיבוי התראות' : 'הפעלת התראות'}
           </button>
+          {state === 'on' && <p className="mt-2 text-xs text-ink-soft">💡 {POPUP_HINT}</p>}
         </>
       )}
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}

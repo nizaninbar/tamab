@@ -18,7 +18,11 @@ self.addEventListener('push', (event) => {
       dir: 'rtl',
       lang: 'he',
       data: { url: data.url ?? '/tamab/' },
-    }),
+      tag: 'tamab',
+      renotify: true,
+      requireInteraction: true,
+      vibrate: [200, 100, 200],
+    } as NotificationOptions),
   )
 })
 

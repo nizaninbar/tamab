@@ -19,7 +19,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ done, deployed, checked in the UI by the user |
 | 11 | Admin delete (per item + bulk cleanup) | ✅ code done, build passes, `invite-teacher` redeployed, **not yet tested in the UI** |
 | 12 | Multi-day schedule block (`end_day`) | ✅ done, deployed, checked in the UI by the user |
-| 13 | Pop-up notifications | ⏳ todo |
+| 13 | Pop-up notifications | ✅ code done, build passes, `send-reminders` redeployed, **not yet tested on a device** |
 
 ## Environment facts
 
@@ -138,6 +138,14 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `schedule/api.ts`: `Slot.end_day`, helpers `coversDay`, `slotLabel`, `byDayStart`. Form has two rows per card (מ־ day+time with ✕, עד day+time); changing the start day bumps `end_day` up to it.
 - Both views (teacher כל המורות, AdminSchedules) list a block under every day it covers. Same-day label stays `16:00–17:00` (`dir="ltr"`); multi-day label uses **←** instead of PLAN's → (in RTL text → points back at the start).
 - The live site could not save schedules (missing `end_day`) between the migration push and the deploy of this phase.
+
+## Phase 13 notes
+
+- `sw.ts` notifications: `tag: 'tamab'`, `renotify`, `requireInteraction`, `vibrate: [200, 100, 200]` (options cast to `NotificationOptions`).
+- `send-reminders`: `sendNotification(..., { urgency: 'high', TTL: 86400 })`. Redeployed.
+- `PushCard`: when on, a 💡 hint for heads-up pop-ups (iOS: banner style "קבוע"; otherwise Android "הצגה על המסך").
+- Heads-up display is finally an OS/channel setting. The new SW reaches installed phones after the app is reopened (skipWaiting).
+- To verify: test push from ניהול on Android, screen on (drops down + vibrates) and screen off.
 
 ## Admin management (post-phase 8)
 
