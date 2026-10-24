@@ -2,7 +2,7 @@ import { corsHeaders, hashToken, json, newToken, requireAdmin, serviceClient } f
 
 // Admin only. Actions:
 //   create     { full_name, group_id, role? } -> creates the teacher (or admin) + first link
-//   remove_admin { user_id }            -> deletes another admin (not self, not the last one)
+//   remove     { user_id }              -> deletes a teacher, or another admin (not self, not the last one)
 //   regenerate { user_id }              -> revokes old links, issues a new one
 //   revoke     { user_id }              -> revokes all links
 // Returns { user_id, token } (token is shown once; only its hash is stored).
@@ -34,13 +34,16 @@ Deno.serve(async (req) => {
       await admin.auth.admin.deleteUser(userId)
       return json({ error: pErr.message }, 500)
     }
-  } else if (body.action === 'remove_admin') {
+  } else if (body.action === 'remove') {
     if (!userId) return json({ error: 'user_id required' }, 400)
     if (userId === callerId) return json({ error: 'אי אפשר להסיר את עצמך' }, 400)
-    const { count } = await admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'admin')
-    if ((count ?? 0) <= 1) return json({ error: 'אי אפשר להסיר את המנהלת האחרונה' }, 400)
     const { data: target } = await admin.from('profiles').select('role').eq('id', userId).single()
-    if (target?.role !== 'admin') return json({ error: 'not an admin' }, 400)
+    if (!target) return json({ error: 'not found' }, 404)
+    if (target.role === 'admin') {
+      const { count } = await admin.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'admin')
+      if ((count ?? 0) <= 1) return json({ error: 'אי אפשר להסיר את המנהלת האחרונה' }, 400)
+    }
+    // Profile cascade removes reports, gaps, schedules, push subscriptions and links.
     const { error } = await admin.auth.admin.deleteUser(userId)
     if (error) return json({ error: error.message }, 500)
     return json({ user_id: userId })

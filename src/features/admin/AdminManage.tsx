@@ -4,9 +4,10 @@ import { Card } from '../../components/ui/Card'
 import { InstallCard } from '../install/InstallCard'
 import { PushCard } from '../push/PushCard'
 import { useAuth } from '../auth/AuthProvider'
+import { addWeeks, currentWeek } from '../../lib/week'
 import {
-  addGroup, addStudent, fetchAdmins, fetchAllStudents, fetchSettings, fetchTeachers, invite, renameGroup,
-  saveSettings, sendTestPush, updateStudent, updateTeacher,
+  addGroup, addStudent, cleanupBefore, deleteGroup, deleteStudent, fetchAdmins, fetchAllStudents, fetchSettings,
+  fetchTeachers, invite, renameGroup, saveSettings, sendTestPush, updateStudent, updateTeacher,
 } from './api'
 import { btnCls, ErrorNote, GroupSelect, inputCls, Loading, softBtnCls, useGroups } from './ui'
 
@@ -60,6 +61,17 @@ function TeachersSection() {
       setMsg('הקישור בוטל')
     })
 
+  const remove = (id: string, name: string) =>
+    run.mutate(async () => {
+      if (!window.confirm(`למחוק את ${name}? כל הדוחות, הפערים והמערכות שלה יימחקו, והקישור שלה יפסיק לעבוד.`)) return
+      setMsg('')
+      await invite({ action: 'remove', user_id: id })
+      setLink(null)
+      qc.invalidateQueries({ queryKey: ['admin-reports'] })
+      qc.invalidateQueries({ queryKey: ['admin-gaps'] })
+      qc.invalidateQueries({ queryKey: ['all-schedules'] })
+    })
+
   return (
     <Card className="space-y-3">
       <h2 className="font-semibold">👩‍🏫 מורות</h2>
@@ -78,6 +90,7 @@ function TeachersSection() {
           <div className="flex gap-2">
             <button className={`${softBtnCls} flex-1`} onClick={() => regenerate(t.id)}>🔗 קישור חדש</button>
             <button className={`${softBtnCls} flex-1`} onClick={() => revoke(t.id)}>🚫 ביטול</button>
+            <button className={`${softBtnCls} flex-1`} onClick={() => remove(t.id, t.full_name)}>🗑 מחיקה</button>
           </div>
           {link?.id === t.id && (
             <div className="space-y-2">
@@ -153,7 +166,7 @@ function AdminsSection() {
     run.mutate(async () => {
       if (!window.confirm('להסיר את המנהלת? החשבון שלה יימחק.')) return
       setMsg('')
-      await invite({ action: 'remove_admin', user_id: id })
+      await invite({ action: 'remove', user_id: id })
       setLink(null)
     })
 
@@ -204,20 +217,39 @@ function GroupsSection() {
 
   const add = useMutation({ mutationFn: () => addGroup(name.trim()), onSuccess: () => { setName(''); done() }, onError })
   const rename = useMutation({ mutationFn: (v: { id: string; name: string }) => renameGroup(v.id, v.name), onSuccess: done, onError })
+  const remove = useMutation({
+    mutationFn: deleteGroup,
+    onSuccess: () => {
+      done()
+      for (const k of ['admin-students', 'teachers', 'admin-gaps', 'admin-reports']) qc.invalidateQueries({ queryKey: [k] })
+    },
+    onError,
+  })
 
   return (
     <Card className="space-y-3">
       <h2 className="font-semibold">👯 קבוצות</h2>
       {groups.map((g) => (
-        <input
-          key={g.id + g.name}
-          className={inputCls}
-          defaultValue={g.name}
-          onBlur={(e) => {
-            const v = e.target.value.trim()
-            if (v && v !== g.name) rename.mutate({ id: g.id, name: v })
-          }}
-        />
+        <div key={g.id + g.name} className="flex gap-2">
+          <input
+            className={inputCls}
+            defaultValue={g.name}
+            onBlur={(e) => {
+              const v = e.target.value.trim()
+              if (v && v !== g.name) rename.mutate({ id: g.id, name: v })
+            }}
+          />
+          <button
+            className={softBtnCls}
+            aria-label="מחיקת הקבוצה"
+            disabled={remove.isPending}
+            onClick={() => {
+              if (window.confirm(`למחוק את ${g.name}? כל התלמידות שלה והפערים שלהן יימחקו, והמורות שלה יישארו בלי קבוצה.`)) remove.mutate(g.id)
+            }}
+          >
+            🗑
+          </button>
+        </div>
       ))}
       <div className="flex gap-2">
         <input className={inputCls} placeholder="קבוצה חדשה" value={name} onChange={(e) => setName(e.target.value)} />
@@ -241,6 +273,11 @@ function StudentsSection() {
   const gid = groupId || groups[0]?.id || ''
   const add = useMutation({ mutationFn: () => addStudent(gid, name.trim()), onSuccess: () => { setName(''); done() }, onError })
   const toggle = useMutation({ mutationFn: (s: { id: string; active: boolean }) => updateStudent(s.id, { active: s.active }), onSuccess: done, onError })
+  const remove = useMutation({
+    mutationFn: deleteStudent,
+    onSuccess: () => { done(); qc.invalidateQueries({ queryKey: ['admin-gaps'] }); qc.invalidateQueries({ queryKey: ['admin-reports'] }) },
+    onError,
+  })
 
   return (
     <Card className="space-y-3">
@@ -257,9 +294,20 @@ function StudentsSection() {
               {list.map((s) => (
                 <li key={s.id} className="flex items-center justify-between rounded-xl bg-lilac-100/50 px-3 py-2 text-sm">
                   <span className={s.active ? '' : 'text-ink-soft line-through'}>{s.full_name}</span>
-                  <button className="min-h-10 px-2 text-lilac-700" onClick={() => toggle.mutate({ id: s.id, active: !s.active })}>
-                    {s.active ? 'השבתה' : 'הפעלה'}
-                  </button>
+                  <span className="flex">
+                    <button className="min-h-10 px-2 text-lilac-700" onClick={() => toggle.mutate({ id: s.id, active: !s.active })}>
+                      {s.active ? 'השבתה' : 'הפעלה'}
+                    </button>
+                    <button
+                      className="min-h-10 px-2 text-red-600"
+                      disabled={remove.isPending}
+                      onClick={() => {
+                        if (window.confirm(`למחוק את ${s.full_name}? כל הפערים שלה יימחקו גם הם.`)) remove.mutate(s.id)
+                      }}
+                    >
+                      מחיקה
+                    </button>
+                  </span>
                 </li>
               ))}
             </ul>
@@ -277,6 +325,39 @@ function StudentsSection() {
         </div>
       </div>
       {err && <p className="text-sm text-red-600">{err}</p>}
+    </Card>
+  )
+}
+
+function CleanupSection() {
+  const qc = useQueryClient()
+  const [cutoff, setCutoff] = useState(() => addWeeks(currentWeek(), -26))
+  const [msg, setMsg] = useState('')
+  const clean = useMutation({
+    mutationFn: () => cleanupBefore(cutoff),
+    onSuccess: (n) => {
+      setMsg(`נמחקו ${n.reports} דוחות ו־${n.schedules} מערכות`)
+      for (const k of ['admin-reports', 'admin-gaps', 'all-schedules']) qc.invalidateQueries({ queryKey: [k] })
+    },
+    onError: (e: Error) => setMsg(e.message),
+  })
+
+  return (
+    <Card className="space-y-3">
+      <h2 className="font-semibold">🧹 ניקוי נתונים ישנים</h2>
+      <p className="text-sm text-ink-soft">מחיקת כל הדוחות (כולל הפערים) והמערכות של שבועות שהתחילו לפני התאריך.</p>
+      <input type="date" dir="ltr" className={inputCls} value={cutoff} onChange={(e) => setCutoff(e.target.value)} />
+      <button
+        className={`${btnCls} w-full`}
+        disabled={!cutoff || clean.isPending}
+        onClick={() => {
+          setMsg('')
+          if (window.confirm(`למחוק את כל הדוחות, הפערים והמערכות לפני ${cutoff.split('-').reverse().join('.')}? אי אפשר לשחזר.`)) clean.mutate()
+        }}
+      >
+        מחיקת דוחות ומערכות לפני התאריך
+      </button>
+      {msg && <p className="text-sm text-ink-soft">{msg}</p>}
     </Card>
   )
 }
@@ -356,6 +437,7 @@ export function AdminManage() {
       <GroupsSection />
       <StudentsSection />
       <ReminderSection />
+      <CleanupSection />
       <InstallCard />
       <PushCard />
       <TestPushSection />

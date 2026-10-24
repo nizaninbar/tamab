@@ -17,7 +17,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 8 | Polish + install guide | ✅ code done, build passes, **not yet tested on a device** |
 | 9 | App icon from `public/icon-source.png` | ✅ done, build passes, **not yet checked on a device** |
 | 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ done, deployed, checked in the UI by the user |
-| 11 | Admin delete (per item + bulk cleanup) | ⏳ todo |
+| 11 | Admin delete (per item + bulk cleanup) | ✅ code done, build passes, `invite-teacher` redeployed, **not yet tested in the UI** |
 | 12 | Multi-day schedule block (`end_day`) | ⏳ todo |
 | 13 | Pop-up notifications | ⏳ todo |
 
@@ -124,10 +124,17 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `rls.sql` extended: T1 sees the same-group gap from T2's private report, T3 sees none, anon gets `insufficient_privilege`. Passed locally.
 - Migration pushed to hosted DB; anon has no execute, authenticated does. Checked as a teacher in the UI by the user.
 
+## Phase 11 notes
+
+- `admin/api.ts`: `deleteReport`, `deleteGap`, `deleteSchedule(teacherId, week)`, `deleteStudent`, `deleteGroup`, `cleanupBefore(cutoff)` (deletes `weekly_reports` + `weekly_schedules` with `week_start < cutoff`, returns counts). All go through `admin_all` RLS; children cascade. No migration.
+- UI: 🗑️ in the expanded report (AdminReports), ✕ per gap (AdminGaps via `GapsList.onDelete`), one chip per submitted teacher with 🗑️ (AdminSchedules), מחיקה per student, 🗑 per group, 🗑 מחיקה per teacher, and `CleanupSection` (🧹, default cutoff = 26 weeks before the current Sunday). Every delete has a Hebrew `window.confirm` naming what cascades.
+- `invite-teacher`: `remove_admin` → `remove`. Not self; admins keep the last-admin check; teachers are just deleted (`auth.admin.deleteUser`, profile cascade). Redeployed. `AdminsSection` uses `remove`.
+- The live frontend still sends `remove_admin` until this phase is pushed to `main`, so removing an admin on the live site fails until then.
+
 ## Admin management (post-phase 8)
 
 - `/manage` has an `AdminsSection` (`AdminManage.tsx`): list admins, add one by name (one-time personal link, same flow as tutors), new link / revoke / remove. Own row has no actions.
-- `invite-teacher` redeployed: `create` takes optional `role: 'admin'` (no group, placeholder email `admin-<uuid>@tamab.invalid`); new `remove_admin` action deletes the auth user (profile cascades) and refuses self-removal and removing the last admin. No migration.
+- `invite-teacher` redeployed: `create` takes optional `role: 'admin'` (no group, placeholder email `admin-<uuid>@tamab.invalid`); new `remove_admin` action (renamed `remove` in phase 11) deletes the auth user (profile cascades) and refuses self-removal and removing the last admin. No migration.
 - Admin bootstrap by SQL is only needed for the very first admin now.
 - Not yet tested end to end in the UI (add admin, open link in a private window, remove).
 

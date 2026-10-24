@@ -84,12 +84,38 @@ export async function updateTeacher(id: string, patch: Partial<Pick<Teacher, 'gr
   ok(await supabase.from('profiles').update(patch).eq('id', id).select('id'))
 }
 
+// Deletes. Children cascade in the DB (gaps, slots, students' gaps).
+export async function deleteReport(id: string) {
+  ok(await supabase.from('weekly_reports').delete().eq('id', id).select('id'))
+}
+export async function deleteGap(id: string) {
+  ok(await supabase.from('report_gaps').delete().eq('id', id).select('id'))
+}
+export async function deleteSchedule(teacherId: string, week: string) {
+  ok(await supabase.from('weekly_schedules').delete().eq('teacher_id', teacherId).eq('week_start', week).select('id'))
+}
+export async function deleteStudent(id: string) {
+  ok(await supabase.from('students').delete().eq('id', id).select('id'))
+}
+export async function deleteGroup(id: string) {
+  ok(await supabase.from('groups').delete().eq('id', id).select('id'))
+}
+
+/** Deletes reports and schedules of weeks before `cutoff`. Returns how many of each. */
+export async function cleanupBefore(cutoff: string): Promise<{ reports: number; schedules: number }> {
+  const r = await supabase.from('weekly_reports').delete({ count: 'exact' }).lt('week_start', cutoff)
+  ok(r)
+  const s = await supabase.from('weekly_schedules').delete({ count: 'exact' }).lt('week_start', cutoff)
+  ok(s)
+  return { reports: r.count ?? 0, schedules: s.count ?? 0 }
+}
+
 export const joinUrl = (token: string) =>
   `${window.location.origin}${import.meta.env.BASE_URL}#/join?t=${token}`
 
 type InviteBody =
   | { action: 'create'; full_name: string; group_id: string | null; role?: 'admin' | 'teacher' }
-  | { action: 'regenerate' | 'revoke' | 'remove_admin'; user_id: string }
+  | { action: 'regenerate' | 'revoke' | 'remove'; user_id: string }
 
 /** Calls the invite-teacher Edge Function. Returns the one-time link (not for revoke). */
 export async function invite(body: InviteBody): Promise<{ user_id: string; url?: string }> {

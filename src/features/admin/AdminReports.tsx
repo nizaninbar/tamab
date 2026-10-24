@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
 import { moodEmoji } from '../../components/ui/EmojiScale'
 import { WeekPicker } from '../../components/ui/WeekPicker'
 import { currentWeek } from '../../lib/week'
-import { fetchAllStudents, fetchTeachers, fetchWeekReports } from './api'
-import { ErrorNote, GroupSelect, inputCls, Loading, ReportDetail } from './ui'
+import { deleteReport, fetchAllStudents, fetchTeachers, fetchWeekReports } from './api'
+import { ErrorNote, GroupSelect, inputCls, Loading, ReportDetail, softBtnCls } from './ui'
 
 export function AdminReports() {
   const [week, setWeek] = useState(currentWeek())
@@ -16,6 +16,15 @@ export function AdminReports() {
   const teachers = useQuery({ queryKey: ['teachers'], queryFn: fetchTeachers })
   const reports = useQuery({ queryKey: ['admin-reports', week], queryFn: () => fetchWeekReports(week) })
   const students = useQuery({ queryKey: ['admin-students'], queryFn: fetchAllStudents })
+  const qc = useQueryClient()
+  const remove = useMutation({
+    mutationFn: deleteReport,
+    onSuccess: () => {
+      setOpen(null)
+      qc.invalidateQueries({ queryKey: ['admin-reports'] })
+      qc.invalidateQueries({ queryKey: ['admin-gaps'] })
+    },
+  })
 
   const shown = (reports.data ?? [])
     .filter((r) => r.submitted_at)
@@ -37,6 +46,7 @@ export function AdminReports() {
 
       {reports.error && <ErrorNote error={reports.error} />}
       {reports.isPending && <Loading />}
+      {remove.error && <ErrorNote error={remove.error} />}
       {reports.data && shown.length === 0 && (
         <Card className="text-center text-sm text-ink-soft">אין דוחות שנשלחו לשבוע הזה.</Card>
       )}
@@ -51,6 +61,15 @@ export function AdminReports() {
           {open === r.id && (
             <div className="mt-3 border-t border-lilac-100 pt-3">
               <ReportDetail r={r} students={students.data ?? []} />
+              <button
+                className={`${softBtnCls} mt-3 w-full text-red-600`}
+                disabled={remove.isPending}
+                onClick={() => {
+                  if (window.confirm(`למחוק את הדוח של ${r.profiles?.full_name ?? ''}? גם הפערים שבו יימחקו.`)) remove.mutate(r.id)
+                }}
+              >
+                🗑️ מחיקת הדוח
+              </button>
             </div>
           )}
         </Card>

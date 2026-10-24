@@ -39,7 +39,7 @@ export function GapsList({ rows, onDelete }: { rows: GapItem[]; onDelete?: (id: 
                   {g.description}
                 </div>
                 {onDelete && (
-                  <button onClick={() => onDelete(g.id)} aria-label="מחיקה" className="text-ink-soft">✕</button>
+                  <button onClick={() => onDelete(g.id)} aria-label="מחיקה" className="min-h-8 px-2 text-ink-soft">✕</button>
                 )}
               </li>
             ))}

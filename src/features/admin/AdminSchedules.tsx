@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
 import { WeekPicker } from '../../components/ui/WeekPicker'
 import { addWeeks, currentWeek } from '../../lib/week'
 import { DAYS, fetchAllSchedules } from '../schedule/api'
-import { fetchTeachers } from './api'
+import { deleteSchedule, fetchTeachers } from './api'
 import { ErrorNote, Loading } from './ui'
 
 /** Combined view: one card per day listing every teacher's slots in time order. */
@@ -12,6 +12,11 @@ export function AdminSchedules() {
   const [week, setWeek] = useState(addWeeks(currentWeek(), 1))
   const schedules = useQuery({ queryKey: ['all-schedules', week], queryFn: () => fetchAllSchedules(week) })
   const teachers = useQuery({ queryKey: ['teachers'], queryFn: fetchTeachers })
+  const qc = useQueryClient()
+  const remove = useMutation({
+    mutationFn: (teacherId: string) => deleteSchedule(teacherId, week),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['all-schedules'] }),
+  })
 
   const rows = (schedules.data ?? []).flatMap((s) =>
     s.schedule_slots.map((sl) => ({ ...sl, who: `${s.profiles?.avatar_emoji ?? ''} ${s.profiles?.full_name ?? ''}` })),
@@ -25,8 +30,28 @@ export function AdminSchedules() {
       <WeekPicker week={week} onChange={setWeek} />
       {schedules.error && <ErrorNote error={schedules.error} />}
       {schedules.isPending && <Loading />}
+      {remove.error && <ErrorNote error={remove.error} />}
       {schedules.data && (
         <>
+          {schedules.data.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {schedules.data.map((s) => (
+                <span key={s.teacher_id} className="flex items-center gap-1 rounded-full bg-white py-1 ps-3 pe-1 text-sm shadow-soft">
+                  {s.profiles?.avatar_emoji} {s.profiles?.full_name}
+                  <button
+                    className="grid size-8 place-items-center rounded-full"
+                    aria-label="מחיקת המערכת"
+                    disabled={remove.isPending}
+                    onClick={() => {
+                      if (window.confirm(`למחוק את המערכת של ${s.profiles?.full_name ?? ''} לשבוע הזה? כל המשבצות שלה יימחקו.`)) remove.mutate(s.teacher_id)
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
           {missing.length > 0 && (
             <Card className="bg-peach-100 text-sm">עוד לא שלחו: {missing.map((t) => t.full_name).join(', ')}</Card>
           )}
