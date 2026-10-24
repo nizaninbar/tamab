@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
 import { addWeeks, currentWeek, weekLabel } from '../../lib/week'
 import { useAuth } from '../auth/AuthProvider'
-import { DAYS, fetchAllSchedules, fetchMySchedule, saveSchedule, type Slot } from './api'
+import { byDayStart, coversDay, DAYS, fetchAllSchedules, fetchMySchedule, saveSchedule, slotLabel, type Slot } from './api'
 
 type Row = Slot & { key: string }
 type Tab = 'mine' | 'all'
@@ -70,7 +70,11 @@ function ScheduleForm({ initial, teacherId, week }: { initial: Slot[] | null; te
   }
   const patch = (key: string, p: Partial<Slot>) => change(rows.map((r) => (r.key === key ? { ...r, ...p } : r)))
 
-  const rowOk = (r: Row) => r.start_time && r.end_time && r.end_time > r.start_time && r.note.trim()
+  const rowOk = (r: Row) =>
+    r.start_time &&
+    r.end_time &&
+    (r.end_day > r.day || (r.end_day === r.day && r.end_time > r.start_time)) &&
+    r.note.trim()
   const valid = rows.every(rowOk)
 
   const copyLast = async () => {
@@ -115,16 +119,16 @@ function ScheduleForm({ initial, teacherId, week }: { initial: Slot[] | null; te
       )}
       {rows.map((r) => (
         <Card key={r.key} className="space-y-2">
-          <div className="flex gap-2">
-            <select
-              value={r.day}
-              onChange={(e) => patch(r.key, { day: Number(e.target.value) })}
-              className={`${field} flex-1`}
-            >
-              {DAYS.map((d, i) => (
-                <option key={i} value={i}>יום {d}</option>
-              ))}
-            </select>
+          <div className="flex items-center gap-2">
+            <span className="w-6 shrink-0 text-sm text-ink-soft">מ־</span>
+            <DaySelect value={r.day} onChange={(day) => patch(r.key, { day, end_day: Math.max(r.end_day, day) })} label="יום התחלה" />
+            <input
+              type="time"
+              value={r.start_time}
+              onChange={(e) => patch(r.key, { start_time: e.target.value })}
+              className={`${field} w-28 shrink-0`}
+              aria-label="התחלה"
+            />
             <button
               type="button"
               aria-label="הסרה"
@@ -135,21 +139,16 @@ function ScheduleForm({ initial, teacherId, week }: { initial: Slot[] | null; te
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <input
-              type="time"
-              value={r.start_time}
-              onChange={(e) => patch(r.key, { start_time: e.target.value })}
-              className={`${field} flex-1`}
-              aria-label="התחלה"
-            />
-            <span>–</span>
+            <span className="w-6 shrink-0 text-sm text-ink-soft">עד</span>
+            <DaySelect value={r.end_day} onChange={(end_day) => patch(r.key, { end_day })} label="יום סיום" />
             <input
               type="time"
               value={r.end_time}
               onChange={(e) => patch(r.key, { end_time: e.target.value })}
-              className={`${field} flex-1`}
+              className={`${field} w-28 shrink-0`}
               aria-label="סיום"
             />
+            <span className="min-w-12" />
           </div>
           <input
             type="text"
@@ -166,7 +165,7 @@ function ScheduleForm({ initial, teacherId, week }: { initial: Slot[] | null; te
 
       <button
         type="button"
-        onClick={() => change([...rows, { key: newKey(), day: 0, start_time: '16:00', end_time: '17:00', note: '' }])}
+        onClick={() => change([...rows, { key: newKey(), day: 0, start_time: '16:00', end_day: 0, end_time: '17:00', note: '' }])}
         className="min-h-12 w-full rounded-2xl bg-blush-100 font-medium text-blush-700"
       >
         ＋ הוספת זמן
@@ -198,6 +197,21 @@ function ScheduleForm({ initial, teacherId, week }: { initial: Slot[] | null; te
   )
 }
 
+function DaySelect({ value, onChange, label }: { value: number; onChange: (day: number) => void; label: string }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(Number(e.target.value))}
+      className={`${field} min-w-0 flex-1`}
+      aria-label={label}
+    >
+      {DAYS.map((d, i) => (
+        <option key={i} value={i}>יום {d}</option>
+      ))}
+    </select>
+  )
+}
+
 function AllSchedules({ week }: { week: string }) {
   const all = useQuery({ queryKey: ['all-schedules', week], queryFn: () => fetchAllSchedules(week) })
 
@@ -209,10 +223,10 @@ function AllSchedules({ week }: { week: string }) {
     <>
       {DAYS.map((name, day) => {
         const items = all.data.flatMap((t) =>
-          t.schedule_slots.filter((s) => s.day === day).map((s) => ({ t, s })),
+          t.schedule_slots.filter((s) => coversDay(s, day)).map((s) => ({ t, s })),
         )
         if (!items.length) return null
-        items.sort((a, b) => a.s.start_time.localeCompare(b.s.start_time))
+        items.sort((a, b) => byDayStart(a.s, b.s))
         return (
           <Card key={day}>
             <div className="font-semibold text-blush-700">יום {name}</div>
@@ -221,7 +235,7 @@ function AllSchedules({ week }: { week: string }) {
                 <li key={i} className="rounded-2xl bg-lilac-100 px-3 py-2 text-sm">
                   <div className="font-medium">
                     {t.profiles?.avatar_emoji} {t.profiles?.full_name}
-                    <span className="ms-2 text-ink-soft" dir="ltr">{s.start_time}–{s.end_time}</span>
+                    <span className="ms-2 text-ink-soft" dir={s.day === s.end_day ? 'ltr' : undefined}>{slotLabel(s)}</span>
                   </div>
                   <div>{s.note}</div>
                 </li>

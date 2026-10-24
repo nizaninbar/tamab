@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Card } from '../../components/ui/Card'
 import { WeekPicker } from '../../components/ui/WeekPicker'
 import { addWeeks, currentWeek } from '../../lib/week'
-import { DAYS, fetchAllSchedules } from '../schedule/api'
+import { byDayStart, coversDay, DAYS, fetchAllSchedules, slotLabel } from '../schedule/api'
 import { deleteSchedule, fetchTeachers } from './api'
 import { ErrorNote, Loading } from './ui'
 
@@ -56,7 +56,7 @@ export function AdminSchedules() {
             <Card className="bg-peach-100 text-sm">עוד לא שלחו: {missing.map((t) => t.full_name).join(', ')}</Card>
           )}
           {DAYS.map((d, day) => {
-            const items = rows.filter((r) => r.day === day).sort((a, b) => a.start_time.localeCompare(b.start_time))
+            const items = rows.filter((r) => coversDay(r, day)).sort(byDayStart)
             if (!items.length) return null
             return (
               <Card key={day}>
@@ -64,9 +64,9 @@ export function AdminSchedules() {
                 <ul className="mt-2 space-y-1 text-sm">
                   {items.map((s, i) => (
                     <li key={i} className="rounded-xl bg-lilac-100 px-3 py-2">
-                      <div className="flex justify-between">
+                      <div className="flex flex-wrap justify-between gap-x-2">
                         <b>{s.who}</b>
-                        <span dir="ltr">{s.start_time}–{s.end_time}</span>
+                        <span dir={s.day === s.end_day ? 'ltr' : undefined}>{slotLabel(s)}</span>
                       </div>
                       <div className="text-ink-soft">{s.note}</div>
                     </li>

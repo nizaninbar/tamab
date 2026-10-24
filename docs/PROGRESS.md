@@ -18,7 +18,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 9 | App icon from `public/icon-source.png` | ✅ done, build passes, **not yet checked on a device** |
 | 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ done, deployed, checked in the UI by the user |
 | 11 | Admin delete (per item + bulk cleanup) | ✅ code done, build passes, `invite-teacher` redeployed, **not yet tested in the UI** |
-| 12 | Multi-day schedule block (`end_day`) | ⏳ todo |
+| 12 | Multi-day schedule block (`end_day`) | ✅ code done, build passes, migration pushed, **not yet tested in the UI** |
 | 13 | Pop-up notifications | ⏳ todo |
 
 ## Environment facts
@@ -131,6 +131,13 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - UI: 🗑️ in the expanded report (AdminReports), ✕ per gap (AdminGaps via `GapsList.onDelete`), one chip per submitted teacher with 🗑️ (AdminSchedules), מחיקה per student, 🗑 per group, 🗑 מחיקה per teacher, and `CleanupSection` (🧹, default cutoff = 26 weeks before the current Sunday). Every delete has a Hebrew `window.confirm` naming what cascades.
 - `invite-teacher`: `remove_admin` → `remove`. Not self; admins keep the last-admin check; teachers are just deleted (`auth.admin.deleteUser`, profile cascade). Redeployed. `AdminsSection` uses `remove`.
 - The live frontend still sends `remove_admin` until this phase is pushed to `main`, so removing an admin on the live site fails until then.
+
+## Phase 12 notes
+
+- Migration `20261026000000_slot_end_day.sql`: `schedule_slots.end_day smallint not null` (backfilled = `day`); `schedule_slots_check` replaced by `schedule_slots_span_check` (`end_day` 0–6 and `(end_day, end_time) > (day, start_time)`). Pushed; checked on the hosted DB that Tue→Sun is rejected and Sun→Tue accepted.
+- `schedule/api.ts`: `Slot.end_day`, helpers `coversDay`, `slotLabel`, `byDayStart`. Form has two rows per card (מ־ day+time with ✕, עד day+time); changing the start day bumps `end_day` up to it.
+- Both views (teacher כל המורות, AdminSchedules) list a block under every day it covers. Same-day label stays `16:00–17:00` (`dir="ltr"`); multi-day label uses **←** instead of PLAN's → (in RTL text → points back at the start).
+- The live site could not save schedules (missing `end_day`) between the migration push and the deploy of this phase.
 
 ## Admin management (post-phase 8)
 
