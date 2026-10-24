@@ -83,6 +83,9 @@ export async function updateStudent(id: string, patch: Partial<Pick<AdminStudent
 export async function updateTeacher(id: string, patch: Partial<Pick<Teacher, 'group_id' | 'full_name'>>) {
   ok(await supabase.from('profiles').update(patch).eq('id', id).select('id'))
 }
+export async function makeAdmin(id: string) {
+  ok(await supabase.from('profiles').update({ role: 'admin', group_id: null }).eq('id', id).select('id'))
+}
 
 // Deletes. Children cascade in the DB (gaps, slots, students' gaps).
 export async function deleteReport(id: string) {

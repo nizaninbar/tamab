@@ -7,7 +7,7 @@ import { useAuth } from '../auth/AuthProvider'
 import { addWeeks, currentWeek } from '../../lib/week'
 import {
   addGroup, addStudent, cleanupBefore, deleteGroup, deleteStudent, fetchAdmins, fetchAllStudents, fetchSettings,
-  fetchTeachers, invite, renameGroup, saveSettings, sendTestPush, updateStudent, updateTeacher,
+  fetchTeachers, invite, makeAdmin, renameGroup, saveSettings, sendTestPush, updateStudent, updateTeacher,
 } from './api'
 import { btnCls, ErrorNote, GroupSelect, inputCls, Loading, softBtnCls, useGroups } from './ui'
 
@@ -72,6 +72,15 @@ function TeachersSection() {
       qc.invalidateQueries({ queryKey: ['all-schedules'] })
     })
 
+  const promote = (id: string, name: string) =>
+    run.mutate(async () => {
+      if (!window.confirm(`להפוך את ${name} למנהלת? היא תצא מהקבוצה ותראה את מסכי הניהול. הדוחות והמערכות הקודמים שלה נשמרים, והקישור שלה ממשיך לעבוד.`)) return
+      setMsg('')
+      await makeAdmin(id)
+      setLink(null)
+      qc.invalidateQueries({ queryKey: ['admins'] })
+    })
+
   return (
     <Card className="space-y-3">
       <h2 className="font-semibold">👩‍🏫 מורות</h2>
@@ -92,6 +101,7 @@ function TeachersSection() {
             <button className={`${softBtnCls} flex-1`} onClick={() => revoke(t.id)}>🚫 ביטול</button>
             <button className={`${softBtnCls} flex-1`} onClick={() => remove(t.id, t.full_name)}>🗑 מחיקה</button>
           </div>
+          <button className={`${softBtnCls} w-full`} onClick={() => promote(t.id, t.full_name)}>👑 הפיכה למנהלת</button>
           {link?.id === t.id && (
             <div className="space-y-2">
               <input className={`${inputCls} text-xs`} dir="ltr" readOnly value={link.url} onFocus={(e) => e.target.select()} />
