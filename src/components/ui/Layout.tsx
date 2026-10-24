@@ -8,6 +8,7 @@ const teacherNav: NavItem[] = [
   { to: '/', emoji: '🏡', label: 'בית' },
   { to: '/report', emoji: '📝', label: 'דוח' },
   { to: '/schedule', emoji: '🗓️', label: 'מערכת' },
+  { to: '/gaps', emoji: '🧩', label: 'פערים' },
   { to: '/profile', emoji: '🌸', label: 'פרופיל' },
 ]
 

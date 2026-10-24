@@ -16,6 +16,14 @@ insert into public.profiles (id, full_name, role, group_id) values
 insert into public.weekly_reports (teacher_id, week_start, is_private) values
   ('00000000-0000-0000-0000-000000000002','2026-10-18', true),
   ('00000000-0000-0000-0000-000000000002','2026-10-25', false);
+insert into public.students (id, group_id, full_name) values
+  ('00000000-0000-0000-0000-0000000000c1','00000000-0000-0000-0000-0000000000a1','SA'),
+  ('00000000-0000-0000-0000-0000000000c2','00000000-0000-0000-0000-0000000000b1','SB');
+-- gap on T2's private report (group A)
+insert into public.report_gaps (report_id, student_id, description)
+  select r.id, '00000000-0000-0000-0000-0000000000c1', 'gap A'
+  from public.weekly_reports r where r.teacher_id = '00000000-0000-0000-0000-000000000002' and r.is_private;
+update public.weekly_reports set submitted_at = now();
 insert into public.weekly_schedules (teacher_id, week_start) values
   ('00000000-0000-0000-0000-000000000002','2026-10-25');
 
@@ -34,6 +42,8 @@ begin
   assert n = 1, 'T1 should see exactly 1 report, got ' || n;
   select count(*) into n from public.weekly_schedules;
   assert n = 1, 'T1 should see all schedules';
+  select count(*) into n from public.group_gaps();
+  assert n = 1, 'T1 should see the same-group gap from a private report, got ' || n;
   reset role;
 
   -- T3 (other group): sees no reports, cannot promote self, cannot read access_links
@@ -47,6 +57,17 @@ begin
   end;
   select count(*) into n from public.access_links;
   assert n = 0, 'access_links must be hidden';
+  select count(*) into n from public.group_gaps();
+  assert n = 0, 'T3 must not see other group gaps, got ' || n;
+  reset role;
+
+  -- anon cannot call group_gaps()
+  set local role anon;
+  begin
+    perform public.group_gaps();
+    assert false, 'anon executed group_gaps()';
+  exception when insufficient_privilege then null;
+  end;
   reset role;
 
   -- Admin sees all

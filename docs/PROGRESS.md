@@ -16,7 +16,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); test push verified on a device by the user |
 | 8 | Polish + install guide | ✅ code done, build passes, **not yet tested on a device** |
 | 9 | App icon from `public/icon-source.png` | ✅ done, build passes, **not yet checked on a device** |
-| 10 | Teacher gaps tab (`group_gaps()` RPC) | ⏳ todo |
+| 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ code done, build + local RLS tests pass, **migration not yet pushed to hosted DB**, not tested in the UI |
 | 11 | Admin delete (per item + bulk cleanup) | ⏳ todo |
 | 12 | Multi-day schedule block (`end_day`) | ⏳ todo |
 | 13 | Pop-up notifications | ⏳ todo |
@@ -116,6 +116,13 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - Background color is the mean of a patch near the corner, `#ebe5fd` (the outermost source pixels are slightly darker, `#e7e2fb`, and left a visible seam). Manifest `background_color` uses it; `theme_color` is still pink.
 - Already installed phones may need to remove and re-add the app to see the new icon (iOS especially).
 - Not done: DevTools → Application manifest check in a browser (manifest output in `dist/` verified by hand).
+
+## Phase 10 notes
+
+- Migration `20261025000000_group_gaps.sql`: `public.group_gaps()` security-definer RPC (submitted reports only, `s.group_id = my_group()`), execute only for `authenticated`. Admins have no group, so it returns nothing for them; admin keeps `fetchGaps()`.
+- `features/gaps/`: `GapsList` (shared per-student list, takes normalized `GapItem` rows + optional `onDelete` for phase 11), `api.ts` (`fetchGroupGaps`), `TeacherGaps` (route `/gaps`, 5th teacher nav item 🧩 before פרופיל). `AdminGaps` maps its rows into `GapsList`.
+- `rls.sql` extended: T1 sees the same-group gap from T2's private report, T3 sees none, anon gets `insufficient_privilege`. Passed locally.
+- **Todo:** `npx supabase db push --linked` (was not run in the session), then check as a teacher.
 
 ## Admin management (post-phase 8)
 

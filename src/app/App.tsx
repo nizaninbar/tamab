@@ -10,6 +10,7 @@ import { AdminGaps } from '../features/admin/AdminGaps'
 import { AdminManage } from '../features/admin/AdminManage'
 import { AdminReports } from '../features/admin/AdminReports'
 import { AdminSchedules } from '../features/admin/AdminSchedules'
+import { TeacherGaps } from '../features/gaps/TeacherGaps'
 import { TeacherHome } from '../features/home/TeacherHome'
 import { ReportPage } from '../features/reports/ReportPage'
 import { SchedulePage } from '../features/schedule/SchedulePage'
@@ -36,6 +37,7 @@ function RoleRoutes() {
       <Route index element={<TeacherHome />} />
       <Route path="report" element={<ReportPage />} />
       <Route path="schedule" element={<SchedulePage />} />
+      <Route path="gaps" element={<TeacherGaps />} />
       <Route path="profile" element={<ProfilePage />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
