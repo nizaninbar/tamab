@@ -152,7 +152,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 - `/manage` has an `AdminsSection` (`AdminManage.tsx`): list admins, add one by name (one-time personal link, same flow as tutors), new link / revoke / remove. Own row has no actions.
 - `invite-teacher` redeployed: `create` takes optional `role: 'admin'` (no group, placeholder email `admin-<uuid>@tamab.invalid`); new `remove_admin` action (renamed `remove` in phase 11) deletes the auth user (profile cascades) and refuses self-removal and removing the last admin. No migration.
 - Admin bootstrap by SQL is only needed for the very first admin now.
-- "👑 הפיכה למנהלת" per teacher (`makeAdmin` in `admin/api.ts`): direct `profiles` update `role='admin', group_id=null` under `admin_all` RLS (the guard trigger allows admins). Her personal link keeps working; old reports/schedules stay in the DB but she no longer appears in teacher lists or gets reminders. She sees the admin UI after reopening the app. One-way: no demote in the UI.
+- "👑 הפיכה למנהלת" per teacher (`makeAdmin` in `admin/api.ts`): direct `profiles` update `role='admin', group_id=null` under `admin_all` RLS (the guard trigger allows admins). Her personal link keeps working; old reports/schedules stay in the DB but she no longer appears in teacher lists or gets reminders. She sees the admin UI after reopening the app. One-way: no demote in the UI. Tested in the UI by the user.
 - Not yet tested end to end in the UI (add admin, open link in a private window, remove).
 
 ## Original notes for phase 3
