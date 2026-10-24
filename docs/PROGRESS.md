@@ -16,7 +16,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 7 | Push: subscription, `send-reminders`, cron, settings UI | ✅ deployed (secrets, function, cron migration); test push verified on a device by the user |
 | 8 | Polish + install guide | ✅ code done, build passes, **not yet tested on a device** |
 | 9 | App icon from `public/icon-source.png` | ✅ done, build passes, **not yet checked on a device** |
-| 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ code done, done, deployed, checked in the UI by the user |
+| 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ done, deployed, checked in the UI by the user |
 | 11 | Admin delete (per item + bulk cleanup) | ⏳ todo |
 | 12 | Multi-day schedule block (`end_day`) | ⏳ todo |
 | 13 | Pop-up notifications | ⏳ todo |
