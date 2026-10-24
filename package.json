@@ -5,7 +5,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && tsc -p tsconfig.sw.json && vite build",
     "preview": "vite preview",
-    "icons": "node scripts/make-icons.mjs"
+    "icons": "node scripts/make-icons.mjs",
+    "ship": "bash scripts/ship.sh"
   },
   "repository": {
     "type": "git",
