@@ -18,7 +18,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 | 9 | App icon from `public/icon-source.png` | ✅ done, build passes, **not yet checked on a device** |
 | 10 | Teacher gaps tab (`group_gaps()` RPC) | ✅ done, deployed, checked in the UI by the user |
 | 11 | Admin delete (per item + bulk cleanup) | ✅ code done, build passes, `invite-teacher` redeployed, **not yet tested in the UI** |
-| 12 | Multi-day schedule block (`end_day`) | ✅ code done, build passes, migration pushed, **not yet tested in the UI** |
+| 12 | Multi-day schedule block (`end_day`) | ✅ done, deployed, checked in the UI by the user |
 | 13 | Pop-up notifications | ⏳ todo |
 
 ## Environment facts
