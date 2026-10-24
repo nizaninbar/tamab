@@ -94,7 +94,7 @@ Phases 9–13 come from client feedback, see "Feedback round 1" below. They are 
 - Manual on phone: install PWA (Android + iOS), login via admin link, link Google, submit report, receive test push from admin screen
 
 ## Feedback round 1 (phases 9–13)
-
+ 
 Client feedback after phase 8. Decisions:
 - Teachers see **all** gaps of their group's students, including gaps from private reports. They see only the gap text, never the private report body; report RLS is unchanged.
 - Managers get both per-item delete and a bulk "delete older than" cleanup (Supabase free tier).

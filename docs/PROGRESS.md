@@ -32,7 +32,7 @@ One session per phase. Read CLAUDE.md, PLAN.md, then this file. Update it at the
 ## Commands
 
 - Dev: `npm run dev -- --host` → http://localhost:5173/tamab/
-- **Commit + push to main (deploys):** `scripts/ship.sh "msg" [--watch] [--no-build]` or `npm run ship -- "msg"`. Builds first, uses the `gh` credential workaround. Claude skill: `.claude/skills/ship`.
+- **Commit + push to main (deploys):** `npm run ship -- "msg" [--watch] [--no-build]` (= `node scripts/ship.mjs`; Node, not bash: PowerShell's `bash` is WSL, which has no git identity and stages CRLF). Builds first, uses the `gh` credential workaround. Claude skill: `.claude/skills/ship`.
 - Build check: `npm run build` (runs `tsc --noEmit` then vite). Must pass; the deploy workflow runs it.
 - Push migrations: `npx supabase db push --linked` (works with no DB password). Add `--include-seed` only for first seed.
 - Ad-hoc SQL on hosted DB: `npx supabase db query --linked "<sql>"`.

@@ -8,7 +8,7 @@ Mobile-first PWA for an admin managing ~6 tutors (2 groups × 3 teachers). Weekl
 - Build phase by phase, following "Build order" in PLAN.md. Stop after each phase for user review.
 - Ask the user for secrets (Supabase URL/keys, Google OAuth, VAPID). Never commit secrets; the service role key goes only in Edge Function secrets.
 - Keep replies short.
-- Commit + push with `scripts/ship.sh "msg" [--watch]` (skill `ship`), not raw git push.
+- Commit + push with `npm run ship -- "msg" [--watch]` (skill `ship`), not raw git push.
 
 ## Conventions
 - Vite + React + TS, Tailwind, TanStack Query, React Router (`HashRouter`), Supabase (RLS on every table).

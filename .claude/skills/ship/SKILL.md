@@ -6,7 +6,7 @@ description: Commit all changes and push tamab to main (triggers the GitHub Page
 Run from the repo root with the Bash tool:
 
 ```
-scripts/ship.sh "<commit message>" [--watch] [--no-build]
+node scripts/ship.mjs "<commit message>" [--watch] [--no-build]
 ```
 
 - Runs `npm run build` first and stops on failure (prints the last lines). `--no-build` skips it (docs-only changes).
